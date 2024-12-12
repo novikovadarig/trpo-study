@@ -12,6 +12,9 @@ import ru.mai.trpo.study.model.Task;
 
 import lombok.Data;
 
+/**
+ * TaskManager для управления задачами
+ */
 @Data
 public class TaskManager {
     private List<Task> tasks;
