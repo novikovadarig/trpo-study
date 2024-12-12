@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"ru.mai.trpo.study"},{"l":"ru.mai.trpo.study.model"},{"l":"ru.mai.trpo.study.service"}];updateSearchResults();
