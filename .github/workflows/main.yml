@@ -2,12 +2,17 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, development ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out repository
         uses: actions/checkout@v3
@@ -20,3 +25,18 @@ jobs:
 
       - name: Build and run tests with Maven
         run: mvn -B clean test
+
+  auto-merge:
+    # Запускать только на pull_request событиях
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'development' && success() }}
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3
+
+      - name: Автоматическое слияние PR
+        uses: peter-evans/merge-pull-request@v3
+        with:
+          merge-method: squash
+          commit-title: 'Автоматическое слияние изменений из development в main'
