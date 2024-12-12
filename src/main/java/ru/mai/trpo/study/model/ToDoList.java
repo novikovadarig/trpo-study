@@ -7,93 +7,91 @@ package ru.mai.trpo.study.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 
 public class ToDoList {
 
     private final List<Task> tasks = new ArrayList<>();
 
-    // Добавление задачи
     public void addTask(String title) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new IllegalArgumentException("Task title cannot be null or empty.");
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("Task title cannot be null or empty");
         }
         tasks.add(new Task(title));
     }
 
-    // Удаление задачи
     public void removeTask(int index) {
         if (index < 0 || index >= tasks.size()) {
-            throw new IndexOutOfBoundsException("Invalid task index: " + index);
+            throw new IndexOutOfBoundsException("Invalid task index");
         }
         tasks.remove(index);
     }
 
-    // Отметка задачи как выполненной
     public void markTaskAsCompleted(int index) {
-        Task task = getTask(index);
-        task.markCompleted();
-    }
-
-    // Получение всех задач
-    public List<Task> getTasks() {
-        return new ArrayList<>(tasks); // Возвращаем копию списка для сохранения инкапсуляции
-    }
-
-    // Получение конкретной задачи
-    private Task getTask(int index) {
         if (index < 0 || index >= tasks.size()) {
-            throw new IndexOutOfBoundsException("Invalid task index: " + index);
+            throw new IndexOutOfBoundsException("Invalid task index");
         }
-        return tasks.get(index);
+        tasks.get(index).setState(TaskState.COMPLETED);
     }
 
-    // Класс задачи
+    public List<Task> getTasks(TaskFilterStrategy filterStrategy) {
+        return filterStrategy.filter(tasks);
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
     public static class Task {
-        private final String title;
+        private String title;
         private TaskState state;
 
+        // Конструктор по умолчанию, чтобы state автоматически устанавливался как NEW
         public Task(String title) {
             this.title = title;
-            this.state = new NewState();
-        }
-
-        public String getTitle() {
-            return title;
-        }
-
-        public boolean isCompleted() {
-            return state instanceof CompletedState;
-        }
-
-        public void markCompleted() {
-            this.state = new CompletedState();
+            this.state = TaskState.NEW;
         }
 
         @Override
         public String toString() {
-            return "Task{" +
-                    "title='" + title + '\'' +
-                    ", state=" + state.getStateName() +
-                    '}';
+            return String.format("Task[title='%s', state='%s']", title, state);
         }
     }
 
-    // Шаблон "Состояние" для управления состояниями задачи
-    interface TaskState {
-        String getStateName();
+    public enum TaskState {
+        NEW,
+        COMPLETED
     }
 
-    static class NewState implements TaskState {
+    public interface TaskFilterStrategy {
+        List<Task> filter(List<Task> tasks);
+    }
+
+    public static class AllTasksFilter implements TaskFilterStrategy {
         @Override
-        public String getStateName() {
-            return "New";
+        public List<Task> filter(List<Task> tasks) {
+            return new ArrayList<>(tasks);
         }
     }
 
-    static class CompletedState implements TaskState {
+    public static class CompletedTasksFilter implements TaskFilterStrategy {
         @Override
-        public String getStateName() {
-            return "Completed";
+        public List<Task> filter(List<Task> tasks) {
+            return tasks.stream()
+                    .filter(task -> task.getState() == TaskState.COMPLETED)
+                    .collect(Collectors.toList());
+        }
+    }
+
+    public static class NewTasksFilter implements TaskFilterStrategy {
+        @Override
+        public List<Task> filter(List<Task> tasks) {
+            return tasks.stream()
+                    .filter(task -> task.getState() == TaskState.NEW)
+                    .collect(Collectors.toList());
         }
     }
 }

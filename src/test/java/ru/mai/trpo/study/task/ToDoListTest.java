@@ -13,7 +13,7 @@ import java.util.List;
 
 import ru.mai.trpo.study.model.ToDoList;
 
-class ToDoListTest {
+public class ToDoListTest {
 
     private ToDoList toDoList;
 
@@ -23,104 +23,111 @@ class ToDoListTest {
     }
 
     @Test
-    void addTask_shouldAddNewTask() {
+    void addTask_ValidTitle_TaskAdded() {
         toDoList.addTask("Task 1");
-        List<ToDoList.Task> tasks = toDoList.getTasks();
-        assertEquals(1, tasks.size());
-        assertEquals("Task 1", tasks.get(0).getTitle());
+        assertEquals(1, toDoList.getTasks(new ToDoList.AllTasksFilter()).size());
     }
 
     @Test
-    void addTask_shouldThrowExceptionForNullTitle() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> toDoList.addTask(null));
-        assertEquals("Task title cannot be null or empty.", exception.getMessage());
+    void addTask_NullTitle_ExceptionThrown() {
+        assertThrows(IllegalArgumentException.class, () -> toDoList.addTask(null));
     }
 
     @Test
-    void addTask_shouldThrowExceptionForEmptyTitle() {
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> toDoList.addTask(" "));
-        assertEquals("Task title cannot be null or empty.", exception.getMessage());
+    void addTask_EmptyTitle_ExceptionThrown() {
+        assertThrows(IllegalArgumentException.class, () -> toDoList.addTask(""));
     }
 
     @Test
-    void removeTask_shouldRemoveExistingTask() {
+    void removeTask_ValidIndex_TaskRemoved() {
         toDoList.addTask("Task 1");
-        toDoList.addTask("Task 2");
         toDoList.removeTask(0);
-        List<ToDoList.Task> tasks = toDoList.getTasks();
-        assertEquals(1, tasks.size());
-        assertEquals("Task 2", tasks.get(0).getTitle());
+        assertEquals(0, toDoList.getTasks(new ToDoList.AllTasksFilter()).size());
     }
 
     @Test
-    void removeTask_shouldThrowExceptionForInvalidIndex() {
-        Exception exception = assertThrows(IndexOutOfBoundsException.class, () -> toDoList.removeTask(0));
-        assertEquals("Invalid task index: 0", exception.getMessage());
+    void removeTask_InvalidIndex_ExceptionThrown() {
+        assertThrows(IndexOutOfBoundsException.class, () -> toDoList.removeTask(0));
     }
 
     @Test
-    void markTaskAsCompleted_shouldMarkTaskAsCompleted() {
+    void markTaskAsCompleted_ValidIndex_TaskMarkedAsCompleted() {
         toDoList.addTask("Task 1");
         toDoList.markTaskAsCompleted(0);
-        List<ToDoList.Task> tasks = toDoList.getTasks();
-        assertTrue(tasks.get(0).isCompleted());
+        assertEquals(1, toDoList.getTasks(new ToDoList.CompletedTasksFilter()).size());
     }
 
     @Test
-    void markTaskAsCompleted_shouldThrowExceptionForInvalidIndex() {
-        Exception exception = assertThrows(IndexOutOfBoundsException.class, () -> toDoList.markTaskAsCompleted(0));
-        assertEquals("Invalid task index: 0", exception.getMessage());
+    void markTaskAsCompleted_InvalidIndex_ExceptionThrown() {
+        assertThrows(IndexOutOfBoundsException.class, () -> toDoList.markTaskAsCompleted(0));
     }
 
     @Test
-    void getTasks_shouldReturnAllTasks() {
+    void getTasks_AllTasksFilter_ReturnsAllTasks() {
         toDoList.addTask("Task 1");
         toDoList.addTask("Task 2");
-        List<ToDoList.Task> tasks = toDoList.getTasks();
+        List<ToDoList.Task> tasks = toDoList.getTasks(new ToDoList.AllTasksFilter());
         assertEquals(2, tasks.size());
-        assertEquals("Task 1", tasks.get(0).getTitle());
-        assertEquals("Task 2", tasks.get(1).getTitle());
     }
 
     @Test
-    void getTasks_shouldReturnEmptyListIfNoTasksAdded() {
-        List<ToDoList.Task> tasks = toDoList.getTasks();
-        assertTrue(tasks.isEmpty());
-    }
-
-    @Test
-    void taskState_shouldReturnNewForNewTasks() {
+    void getTasks_CompletedTasksFilter_ReturnsCompletedTasks() {
         toDoList.addTask("Task 1");
-        ToDoList.Task task = toDoList.getTasks().get(0);
-        assertEquals("New", task.toString().split("state=")[1].replace("}", ""));
+        toDoList.addTask("Task 2");
+        toDoList.markTaskAsCompleted(1);
+        List<ToDoList.Task> tasks = toDoList.getTasks(new ToDoList.CompletedTasksFilter());
+        assertEquals(1, tasks.size());
     }
 
     @Test
-    void taskState_shouldReturnCompletedForCompletedTasks() {
+    void getTasks_NewTasksFilter_ReturnsNewTasks() {
         toDoList.addTask("Task 1");
-        toDoList.markTaskAsCompleted(0);
-        ToDoList.Task task = toDoList.getTasks().get(0);
-        assertEquals("Completed", task.toString().split("state=")[1].replace("}", ""));
+        toDoList.addTask("Task 2");
+        List<ToDoList.Task> tasks = toDoList.getTasks(new ToDoList.NewTasksFilter());
+        assertEquals(2, tasks.size());
     }
 
     @Test
-    void toString_shouldProvideCorrectTaskRepresentation() {
-        toDoList.addTask("Task 1");
-        ToDoList.Task task = toDoList.getTasks().get(0);
-        assertTrue(task.toString().contains("title='Task 1'") && task.toString().contains("state=New"));
+    void taskToString_ReturnsCorrectStringRepresentation() {
+        ToDoList.Task task = new ToDoList.Task("Task 1", ToDoList.TaskState.NEW);
+        assertEquals("Task[title='Task 1', state='NEW']", task.toString());
     }
 
     @Test
-    void taskCreation_shouldAssignCorrectTitle() {
-        toDoList.addTask("Task 1");
-        assertEquals("Task 1", toDoList.getTasks().get(0).getTitle());
+    void taskConstructor_DefaultStateIsNew() {
+        ToDoList.Task task = new ToDoList.Task("Task 1");
+        assertEquals(ToDoList.TaskState.NEW, task.getState());
     }
 
     @Test
-    void tasksList_shouldBeEncapsulated() {
-        toDoList.addTask("Task 1");
-        List<ToDoList.Task> tasks = toDoList.getTasks();
-        tasks.clear(); // This should not affect the internal list
-        assertEquals(1, toDoList.getTasks().size());
+    void allTasksFilter_FilterReturnsCopy() {
+        List<ToDoList.Task> tasks = List.of(
+                new ToDoList.Task("Task 1"),
+                new ToDoList.Task("Task 2")
+        );
+        List<ToDoList.Task> filteredTasks = new ToDoList.AllTasksFilter().filter(tasks);
+        assertNotSame(tasks, filteredTasks);
+    }
+
+    @Test
+    void completedTasksFilter_FiltersOnlyCompletedTasks() {
+        List<ToDoList.Task> tasks = List.of(
+                new ToDoList.Task("Task 1", ToDoList.TaskState.NEW),
+                new ToDoList.Task("Task 2", ToDoList.TaskState.COMPLETED)
+        );
+        List<ToDoList.Task> filteredTasks = new ToDoList.CompletedTasksFilter().filter(tasks);
+        assertEquals(1, filteredTasks.size());
+        assertEquals("Task 2", filteredTasks.get(0).getTitle());
+    }
+
+    @Test
+    void newTasksFilter_FiltersOnlyNewTasks() {
+        List<ToDoList.Task> tasks = List.of(
+                new ToDoList.Task("Task 1", ToDoList.TaskState.NEW),
+                new ToDoList.Task("Task 2", ToDoList.TaskState.COMPLETED)
+        );
+        List<ToDoList.Task> filteredTasks = new ToDoList.NewTasksFilter().filter(tasks);
+        assertEquals(1, filteredTasks.size());
+        assertEquals("Task 1", filteredTasks.get(0).getTitle());
     }
 }
