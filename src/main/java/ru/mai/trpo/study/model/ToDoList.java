@@ -24,6 +24,10 @@ public class ToDoList {
         tasks.add(new Task(title));
     }
 
+    /**
+     * Метод удаления задачи по её индексу
+     * @param index Индекс задачи
+     */
     public void removeTask(int index) {
         if (index < 0 || index >= tasks.size()) {
             throw new IndexOutOfBoundsException("Invalid task index");
