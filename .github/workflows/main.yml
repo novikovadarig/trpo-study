@@ -26,17 +26,9 @@ jobs:
       - name: Build and run tests with Maven
         run: mvn -B clean test
 
-  auto-merge:
-    # Запускать только на pull_request событиях
-    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'development' && success() }}
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@v3
-
-      - name: Автоматическое слияние PR
-        uses: peter-evans/merge-pull-request@v3
+      - name: Auto Merge PR
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'development' && success() }}
+        uses: peter-evans/auto-merge@v2
         with:
+          pull-request-number: ${{ github.event.pull_request.number }}
           merge-method: squash
-          commit-title: 'Автоматическое слияние изменений из development в main'
