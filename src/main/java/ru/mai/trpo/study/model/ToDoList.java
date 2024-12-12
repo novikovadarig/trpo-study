@@ -38,6 +38,11 @@ public class ToDoList {
         tasks.get(index).setState(TaskState.COMPLETED);
     }
 
+    /**
+     * Метод получения задач
+     * @param filterStrategy Стратегия для фильтрации задач, которые необходимо получить
+     * @return Список задач
+     */
     public List<Task> getTasks(TaskFilterStrategy filterStrategy) {
         return filterStrategy.filter(tasks);
     }
