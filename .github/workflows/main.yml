@@ -26,9 +26,26 @@ jobs:
       - name: Build and run tests with Maven
         run: mvn -B clean test
 
-      - name: Auto Merge PR
-        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'development' && success() }}
-        uses: peter-evans/auto-merge@v2
+  auto-merge:
+    needs: build-and-test
+    if: ${{ github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Merge the pull request
+        uses: actions/github-script@v6
         with:
-          pull-request-number: ${{ github.event.pull_request.number }}
-          merge-method: squash
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pr = context.payload.pull_request;
+            if (pr.state === 'open') {
+              await github.rest.pulls.merge({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: pr.number,
+                merge_method: 'merge'
+              });
+              console.log(`Pull Request #${pr.number} has been merged.`);
+            } else {
+              console.log(`Pull Request #${pr.number} is not open.`);
+            }
