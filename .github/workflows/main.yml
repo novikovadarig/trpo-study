@@ -26,6 +26,18 @@ jobs:
       - name: Build and run tests with Maven
         run: mvn -B clean test
 
+      # Генерация Javadoc
+      - name: Generate Javadoc
+        run: mvn javadoc:javadoc
+
+      # Предположим, что сгенерированная документация находится в target/site/apidocs
+      # Используем GitHub Actions для деплоя на gh-pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/site/apidocs
+
   auto-merge:
     needs: build-and-test
     if: ${{ github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'synchronize') }}

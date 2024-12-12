@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>ru.mai.trpo</groupId>
 	<artifactId>study</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0</version>
 	<name>study</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
